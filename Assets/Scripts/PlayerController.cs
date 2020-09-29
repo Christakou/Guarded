@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     public float smoothMoveTime = .1f;
     public float turnSpeed = 8;
     public static event System.Action OnPlayerBeatLevel;
+    public bool detected = false;
 
     float angle;
     float smoothInputMagnitude;
@@ -27,6 +28,8 @@ public class PlayerController : MonoBehaviour
     {
         rigidbody = GetComponent<Rigidbody>();
         Guard.OnGuardHasSpottedPlayer += Disable;
+        Guard.OnPlayerEnterGuardFOV += StartDetection;
+        Guard.OnPlayerLeftGuardFOV += EndDetection;
     }
 
     void Update()
@@ -60,11 +63,33 @@ public class PlayerController : MonoBehaviour
 
     void Disable()
     {
+        FindObjectOfType<AudioManager>().Play("SadTrombone");
         disabled = true;
     }
 
     private void OnDestroy()
     {
         Guard.OnGuardHasSpottedPlayer -= Disable;
+        Guard.OnPlayerEnterGuardFOV -= StartDetection;
+        Guard.OnPlayerLeftGuardFOV -= EndDetection;
+    }
+
+    private void StartDetection()
+    {
+        if (!detected)
+        {
+            detected = true;
+            Debug.Log("Start detection");
+            FindObjectOfType<AudioManager>().Play("Clock");
+        }
+    }
+    private void EndDetection()
+    {
+        if (detected)
+        {
+            detected = false;
+            Debug.Log("End detection");
+            FindObjectOfType<AudioManager>().Stop("Clock");
+        }
     }
 }

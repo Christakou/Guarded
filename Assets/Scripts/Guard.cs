@@ -7,6 +7,8 @@ public class Guard : MonoBehaviour
 {
 
     public static event System.Action OnGuardHasSpottedPlayer;
+    public static event System.Action OnPlayerEnterGuardFOV;
+    public static event System.Action OnPlayerLeftGuardFOV;
     public Transform pathHolder;
     public float speed = 5.0f;
     public float waitTime = 2.0f;
@@ -14,8 +16,9 @@ public class Guard : MonoBehaviour
     public Light spotlight;
     public float viewDistance;
     public float viewAngle;
+    public bool canSeePlayer = false;
+    public bool sawPlayer = false;
 
-    private bool canSeePlayer = false;
     public GameObject player;
     public float playerDetectionTime = 10f;
     public float playerVisibleTimer = 1f;
@@ -39,7 +42,7 @@ public class Guard : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Vector3 startPosition = pathHolder.GetChild(0).position;
+        Vector3 startPosition = pathHolder.GetChild(0).position; 
         Vector3 previousPosition = startPosition;
         foreach (Transform waypoint in pathHolder)
         {
@@ -81,13 +84,22 @@ public class Guard : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
         if (CanSeePlayer())
         {
+            if (sawPlayer == false)
+            {
+                OnPlayerEnterGuardFOV();
+                sawPlayer = true;
+            }
             playerVisibleTimer += Time.deltaTime;
         }
         else
         {
+            if (sawPlayer == true)
+            {
+                OnPlayerLeftGuardFOV();
+                sawPlayer = false;
+            }
             playerVisibleTimer -= Time.deltaTime;
         }
         playerVisibleTimer = Mathf.Clamp(playerVisibleTimer, 0, playerDetectionTime);
